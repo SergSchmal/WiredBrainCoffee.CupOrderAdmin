@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -24,6 +25,9 @@ namespace WiredBrainCoffee.CupOrderAdmin.Core.Tests.Services.OrderCreation
 
             var coffeeCupRepositoryMock = new Mock<ICoffeeCupRepository>();
             coffeeCupRepositoryMock.Setup(x => x.GetCoffeeCupsInStockCountAsync()).ReturnsAsync(_numberOfCupsInStock);
+            coffeeCupRepositoryMock.Setup(x => x.GetCoffeeCupsInStockAsync(It.IsAny<int>()))
+                .ReturnsAsync((int numberOfCupsInStock) => Enumerable.Range(1, numberOfCupsInStock)
+                .Select(x => new CoffeeCup()));
 
             _orderCreationService = new OrderCreationService(orderRepositoryMock.Object, coffeeCupRepositoryMock.Object);
         }
@@ -102,6 +106,22 @@ namespace WiredBrainCoffee.CupOrderAdmin.Core.Tests.Services.OrderCreation
             var discountInPercent = OrderCreationService.CalculateDiscountPercentage(membership, numberOfOrderedCups);
 
             Assert.AreEqual(expectedDiscountInPercent, discountInPercent);
+        }
+
+        [TestMethod]
+        public void ShouldThrowArgumentNullExceptionIfOrderRepositoryIsNull()
+        {
+            var exception = Assert.ThrowsException<ArgumentNullException>(() => new OrderCreationService(null, new Mock<ICoffeeCupRepository>().Object));
+
+            Assert.AreEqual("orderRepository", exception.ParamName);
+        }
+
+        [TestMethod]
+        public void ShouldThrowArgumentNullExceptionIfCoffeeCupRepositoryIsNull()
+        {
+            var exception = Assert.ThrowsException<ArgumentNullException>(() => new OrderCreationService(new Mock<IOrderRepository>().Object, null));
+
+            Assert.AreEqual("coffeeCupRepository", exception.ParamName);
         }
     }
 }
