@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using WiredBrainCoffee.CupOrderAdmin.Core.DataInterfaces;
 using WiredBrainCoffee.CupOrderAdmin.Core.Model;
+using WiredBrainCoffee.CupOrderAdmin.Core.Model.Enums;
 using WiredBrainCoffee.CupOrderAdmin.Core.Services.OrderCreation;
 
 namespace WiredBrainCoffee.CupOrderAdmin.Core.Tests.Services.OrderCreation
@@ -87,6 +88,21 @@ namespace WiredBrainCoffee.CupOrderAdmin.Core.Tests.Services.OrderCreation
                 _orderCreationService.CreateOrderAsync(customer, numberOfOrderedCups));
 
             Assert.AreEqual("customer", exception.ParamName);
+        }
+
+        [DataTestMethod]
+        [DataRow(3,5, CustomerMembership.Basic)]
+        [DataRow(0,4, CustomerMembership.Basic)]
+        [DataRow(8,5, CustomerMembership.Premium)]
+        [DataRow(5,4, CustomerMembership.Premium)]
+        public async Task ShouldCalculateCorrectDiscountPercentage(double expectedDiscountInPercent, int numberOfOrderedCups, CustomerMembership membership)
+        {
+            Customer customer = new Customer{ Membership = membership};
+
+            var orderCreationResult = await _orderCreationService.CreateOrderAsync(customer, numberOfOrderedCups);
+
+            Assert.AreEqual(OrderCreationResultCode.Success, orderCreationResult.ResultCode);
+            Assert.AreEqual(expectedDiscountInPercent, orderCreationResult.CreatedOrder.DiscountInPercent);
         }
     }
 }

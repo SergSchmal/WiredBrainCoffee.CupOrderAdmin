@@ -56,12 +56,10 @@ namespace WiredBrainCoffee.CupOrderAdmin.Core.Services.OrderCreation
         {
             var discountInPercent = 0.0;
 
-            // TODO: Calculate discount in percent
-            //
-            //       Rules:
-            //       3% for more than 4 cups
-            //      
-            //       Premium customers get 5% in addition
+            if (numberOfOrderedCups > 4)
+                discountInPercent = 3.0;
+            if (membership == CustomerMembership.Premium)
+                discountInPercent += 5.0;
 
             return discountInPercent;
         }
